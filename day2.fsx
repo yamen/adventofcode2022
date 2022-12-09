@@ -5,8 +5,12 @@ C Z"""
 type Outcome = | Win | Loss | Draw
 type Choice = | Rock | Paper | Scissors
 
+let winsAgainst = function | Rock -> Scissors | Paper -> Rock | Scissors -> Paper
+let losesAgainst = function | Rock -> Paper | Paper -> Scissors | Scissors -> Rock
+
 let scoreOutcome = function | Win -> 6 | Draw -> 3 | Loss -> 0
 let scoreChoice = function | Rock -> 1 | Paper -> 2 | Scissors -> 3
+
 let scoreRound (outcome, choice) = (scoreOutcome outcome) + (scoreChoice choice)
 
 let parseOpponent = function | "A" -> Rock | "B" -> Paper | "C" -> Scissors | _ -> failwith "wtf"
@@ -23,25 +27,18 @@ let parseRound2 (line: string) =
     let targetOutcome = parseMe2 tokens.[1]
     
     let myChoice = 
-        match opponentChoice, targetOutcome with
-        | a, Draw -> a
-        | Rock, Win -> Paper
-        | Rock, Lose -> Scissors
-        | Paper, Win -> Scissors
-        | Paper, Lose -> Rock
-        | Scissors, Win -> Rock
-        | Scissors, Lose -> Paper
+        match targetOutcome with
+        | Draw -> opponentChoice
+        | Win -> winsAgainst opponentChoice
+        | Loss -> losesAgainst opponentChoice
 
     myChoice, opponentChoice
 
 let processRound (me: Choice, opponent: Choice) =
     let outcome = 
-        match me, opponent with
-        | Rock, Scissors -> Win
-        | Scissors, Paper -> Win
-        | Paper, Rock -> Win
-        | a, b when a = b -> Draw
-        | _ -> Loss
+        if opponent = me then Draw
+        elif winsAgainst opponent = me then Draw
+        else Loss
 
     outcome, me
 
@@ -65,11 +62,11 @@ let run2 (input:string[]) =
 
     printfn "sum2: %i" sum    
 
-
 printfn "example"
 example.Split("\n") |> run1
 example.Split("\n") |> run2
 
 printfn "puzzle"
-System.IO.File.ReadAllLines("data/day2.txt") |> run1
-System.IO.File.ReadAllLines("data/day2.txt") |> run2
+let puzzle = System.IO.File.ReadAllLines("data/day2.txt")
+puzzle |> run1
+puzzle |> run2
