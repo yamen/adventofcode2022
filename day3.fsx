@@ -14,16 +14,19 @@ let mapItemToPriority (item:char) =
     else
         int32 item - uppercaseA + 27
 
+let mapItems (items:string) = 
+    items.ToCharArray() |> Array.map mapItemToPriority |> Set.ofArray
+
 let processRucksack1 (line:string) = 
-    let firstHalf = line.[0..line.Length/2-1].ToCharArray() |> Array.map mapItemToPriority |> Set.ofArray
-    let secondHalf = line.[line.Length/2..line.Length-1].ToCharArray() |> Array.map mapItemToPriority |> Set.ofArray
+    let firstHalf = line.[0..line.Length/2-1] |> mapItems
+    let secondHalf = line.[line.Length/2..line.Length-1] |> mapItems
 
     [ firstHalf; secondHalf ]
 
 let processRucksack2 (lines:string[]) = 
-    let firstElf = lines.[0].ToCharArray() |> Array.map mapItemToPriority |> Set.ofArray
-    let secondElf = lines.[1].ToCharArray() |> Array.map mapItemToPriority |> Set.ofArray
-    let thirdElf = lines.[2].ToCharArray() |> Array.map mapItemToPriority |> Set.ofArray
+    let firstElf = lines.[0] |> mapItems
+    let secondElf = lines.[1] |> mapItems
+    let thirdElf = lines.[2] |> mapItems
 
     [ firstElf; secondElf; thirdElf ]
 
