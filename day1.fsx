@@ -22,12 +22,11 @@ let run (input:string[]) =
             | _ -> 0 :: state
         ) [ 0 ]
 
-    let topElf = allElves |> List.max
     let sortedElves = allElves |> List.sortDescending
+    let topElf = sortedElves |> List.head
     let topThreeElves = sortedElves |> List.take 3 |> List.sum
     
     printfn "top elf: %i" topElf
-    printfn "sorted elves: %s" (sortedElves.ToString())
     printfn "top three elves: %i" topThreeElves
 
 

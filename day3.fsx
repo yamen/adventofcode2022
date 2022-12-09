@@ -36,16 +36,14 @@ let getCommonItems (sacks) =
 let run1 (input:string[]) =  
     input 
     |> Array.map processRucksack1
-    |> Array.map getCommonItems
-    |> Array.collect id
+    |> Array.collect getCommonItems
     |> Array.sum
 
 let run2 (input:string[]) =  
     input 
     |> Array.chunkBySize 3
     |> Array.map processRucksack2
-    |> Array.map getCommonItems
-    |> Array.collect id
+    |> Array.collect getCommonItems
     |> Array.sum    
 
 printfn "example"
