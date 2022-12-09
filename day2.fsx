@@ -37,7 +37,7 @@ let parseRound2 (line: string) =
 let processRound (me: Choice, opponent: Choice) =
     let outcome = 
         if opponent = me then Draw
-        elif winsAgainst opponent = me then Draw
+        elif winsAgainst opponent = me then Win
         else Loss
 
     outcome, me
