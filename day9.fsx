@@ -85,12 +85,6 @@ let moveRope (rope: Rope) (direction: Direction) =
         |> Seq.skip 1
         |> List.ofSeq
 
-    // let newTail = 
-    //     newHead :: rope.Tail
-    //     |> Seq.pairwise
-    //     |> Seq.map (fun (leader, follower) -> follower.Follow leader)
-    //     |> List.ofSeq
-
     newHead :: newTail
 
 let rec processSteps (state: State) printSteps = 
