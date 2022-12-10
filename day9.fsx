@@ -1,3 +1,6 @@
+#r "nuget: Unquote"
+open Swensen.Unquote
+
 let example = """R 4
 U 4
 L 3
@@ -101,6 +104,7 @@ let rec processSteps (state: State) printSteps =
             match next.Distance with
             | 1 -> rest
             | d -> { Direction = next.Direction; Distance = d - 1 } :: rest
+
         processSteps { Rope = newRope; Instructions = newInstructions; TailVisited = (getLastPoint newRope) :: state.TailVisited } printSteps
 
 let run1 ropeSize printSteps (input:string[]) = 
@@ -116,9 +120,9 @@ let run1 ropeSize printSteps (input:string[]) =
     finalState.TailVisited |> Set.ofList |> Set.count
 
 printfn "example"
-example.Split("\n") |> run1 2 true |> printfn "visited: %i"
-example.Split("\n") |> run1 10 true |> printfn "visited: %i"
-exampleLong.Split("\n") |> run1 10 true |> printfn "visited: %i"
+test <@ example.Split("\n") |> run1 2 false = 13 @>
+test <@ example.Split("\n") |> run1 10 false = 1 @>
+test <@ exampleLong.Split("\n") |> run1 10 false = 36 @>
 
 printfn "puzzle"
 let puzzle = System.IO.File.ReadAllLines("data/day9.txt");;
