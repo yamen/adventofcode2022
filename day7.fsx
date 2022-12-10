@@ -96,7 +96,6 @@ let run2 (input:string[]) =
 
     let unusedSize = totalSize - (allDirectories.[0] |> snd)
     let needToDelete = neededSize - unusedSize
-
     
     allDirectories
     |> Array.sortBy snd
