@@ -204,10 +204,10 @@ let run2 (input:string[])  =
     |> Array.map (String.concat "")
 
 printfn "example"
-//example1.Split("\n") |> run1 [| 20; 60; 100; 140; 180; 220 |] |> printfn "signal: %i"
+//example1.Split("\n") |> run1 [| 20..40..220 |] |> printfn "signal: %i"
 example1.Split("\n") |> run2
 
 printfn "puzzle"
 let puzzle = System.IO.File.ReadAllLines("data/day10.txt");;
-// puzzle |> run1 [| 20; 60; 100; 140; 180; 220 |] |> printfn "signal: %i"
+// puzzle |> run1 [| 20..40..220 |] |> printfn "signal: %i"
 puzzle |> run2
