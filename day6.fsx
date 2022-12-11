@@ -1,16 +1,15 @@
 let example = """mjqjpqmgbljsphdztnvjfqwrcgsmlb"""
 
 let run1 windowSize (input:string) = 
-    let characters = input.ToCharArray()
     let windows = 
-        characters 
+        input 
         |> Seq.windowed windowSize
         |> Seq.mapi (fun i window -> i, window)
 
     let i, _ = 
         windows 
         |> Seq.find (fun (i, c) -> 
-            (c |> Array.distinct |> Array.length) = windowSize
+            (c |> Seq.distinct |> Seq.length) = windowSize
         )
 
     i + windowSize
