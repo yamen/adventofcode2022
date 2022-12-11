@@ -1,4 +1,5 @@
-#r "nuget: Unquote"
+#load "helpers.fsx"
+open Helpers
 open Swensen.Unquote
 
 let example = """Monkey 0:
@@ -38,10 +39,7 @@ type Operation = {
   Right: Value
 } with
   member this.Execute input = 
-    let getValue value = 
-      match value with
-        | Input -> input
-        | Constant x -> x
+    let getValue = function | Input -> input | Constant x -> x
 
     let left = getValue this.Left
     let right = getValue this.Right     
@@ -50,23 +48,21 @@ type Operation = {
       | Add -> left + right
       | Multiply -> left * right   
 
+let (|Value|) = function
+  | "old" -> Input
+  | x -> Constant(int x)
+
+let (|Operand|) = function
+  | "+" -> Add 
+  | "*" -> Multiply 
+  | _ -> failwith "invalid operand"  
+
 let parseOperation (input:string) = 
-  let [|left; operand; right|] = input.Split("= ").[1].Split(" ")
-
-  let operand = 
-    match operand with 
-      | "+" -> Add 
-      | "*" -> Multiply 
-      | _ -> failwith "invalid operand"
-
-  let getValue = function
-    | "old" -> Input
-    | x -> Constant(int x)
-
-  let left = getValue(left)
-  let right = getValue(right)
-
-  { Operand = operand; Left = left; Right = right }
+  match input with
+  | Regex "new = (old|\\d+) (\\+|\\*) (old|\\d+)" [left; operand; right] ->
+    match left, right, operand with
+    | Value left, Value right, Operand operand -> { Operand = operand; Left = left; Right = right }
+  | _ -> failwith $"invalid operation: {input}"
 
 type Monkey = {
   Id: int
@@ -127,12 +123,12 @@ let calculateMonkeyBusiness state =
   |> Array.map (fun x -> x.InspectionCount) 
   |> Array.sortDescending 
   |> Array.take 2 
-  |> Array.reduce (fun a x -> a * x)
+  |> Array.mul
 
 let run1 rounds reduceWorry (input:string)  =
   let (monkeys: Monkey[]), monkeyStates = parseMonkeys input reduceWorry
-  let Modulus = monkeys |> Array.map (fun m -> m.DivisibilityTest) |> Array.reduce (fun a c -> a * c)
-  let state = { MonkeyStates = monkeyStates; Modulus = Modulus }
+  let modulus = monkeys |> Array.map (fun m -> m.DivisibilityTest) |> Array.mul
+  let state = { MonkeyStates = monkeyStates; Modulus = modulus }
 
   [1..rounds]
   |> List.fold (processRound monkeys) state
