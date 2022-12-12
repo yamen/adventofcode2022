@@ -1,6 +1,7 @@
-#load "helpers.fsx"
-open Helpers
+#r "nuget: Unquote"
+#r "./Common/bin/Debug/net6.0/Common.dll"
 open Swensen.Unquote
+open Common
 
 let example = """Monkey 0:
   Starting items: 79, 98
@@ -22,7 +23,7 @@ Monkey 2:
   Test: divisible by 13
     If true: throw to monkey 1
     If false: throw to monkey 3
-
+ 
 Monkey 3:
   Starting items: 74
   Operation: new = old + 3
@@ -30,44 +31,22 @@ Monkey 3:
     If true: throw to monkey 0
     If false: throw to monkey 1"""
 
-type Operand = Add | Multiply
-type Value = Input | Constant of int64
-
-type Operation = {
-  Operand: Operand
-  Left: Value
-  Right: Value
-} with
-  member this.Execute input = 
-    let getValue = function | Input -> input | Constant x -> x
-
-    let left = getValue this.Left
-    let right = getValue this.Right     
-
-    match this.Operand with
-      | Add -> left + right
-      | Multiply -> left * right   
-
-let (|Value|) = function
-  | "old" -> Input
-  | x -> Constant(int x)
-
-let (|Operand|) = function
-  | "+" -> Add 
-  | "*" -> Multiply 
+let (|Operator|) = function
+  | "+" -> (+) 
+  | "*" -> (*) 
   | _ -> failwith "invalid operand"  
 
 let parseOperation (input:string) = 
   match input with
-  | Regex "new = (old|\\d+) (\\+|\\*) (old|\\d+)" [left; operand; right] ->
-    match left, right, operand with
-    | Value left, Value right, Operand operand -> { Operand = operand; Left = left; Right = right }
+  | Regex "new = old (\\+|\\*) (old|\\d+)" [Operator f; right] ->
+    match right with
+    | "old" -> fun x -> f x x
+    | n -> fun x -> f x (int64 n)
   | _ -> failwith $"invalid operation: {input}"
 
 type Monkey = {
   Id: int
-  Operation: Operation
-  ReduceWorry: bool
+  Operation: int64 -> int64
   DivisibilityTest: int64
   IfTrue: int
   IfFalse: int
@@ -78,12 +57,9 @@ type MonkeyState = {
   mutable InspectionCount: int64
 }
 
-type State = {
-  MonkeyStates: MonkeyState[]
-  Modulus: int64
-}
+type State = MonkeyState[]
 
-let parseMonkey reduceWorry id (input: string) =
+let parseMonkey id (input: string) =
   let lines = input.Split("\n")
   let items = lines.[1].Split(": ").[1].Split(", ") |> Seq.map int64 |> List.ofSeq
   let operation = lines.[2] |> parseOperation
@@ -91,10 +67,10 @@ let parseMonkey reduceWorry id (input: string) =
   let ifTrue = lines.[4].Split(": ").[1].Split(" ").[3] |> int
   let ifFalse = lines.[5].Split(": ").[1].Split(" ").[3] |> int
 
-  { Id = id; Operation = operation; DivisibilityTest = divisibilityTest; IfTrue = ifTrue; IfFalse = ifFalse; ReduceWorry = reduceWorry }, {Items = items; InspectionCount = 0}
+  { Id = id; Operation = operation; DivisibilityTest = divisibilityTest; IfTrue = ifTrue; IfFalse = ifFalse }, {Items = items; InspectionCount = 0}
 
-let parseMonkeys (input: string) reduceWorry =
-  input.Split("\n\n") |> Seq.mapi (parseMonkey reduceWorry) |> Array.ofSeq |> Array.unzip
+let parseMonkeys (input: string) =
+  input.Split("\n\n") |> Seq.mapi parseMonkey |> Array.ofSeq |> Array.unzip
 
 let getTargetMonkey (monkey: Monkey) (worryLevel: int64) =
   if worryLevel % monkey.DivisibilityTest = 0L then
@@ -102,44 +78,51 @@ let getTargetMonkey (monkey: Monkey) (worryLevel: int64) =
   else
     monkey.IfFalse
 
-let processMonkey (state: State) (monkey: Monkey) = 
-  let monkeyState = state.MonkeyStates.[monkey.Id]
+let processMonkey worryReducer (state: State) (monkey: Monkey) = 
+  let monkeyState = state.[monkey.Id]
 
   for item in monkeyState.Items do
-    let newWorryLevel = ((monkey.Operation.Execute item) % state.Modulus) / (if monkey.ReduceWorry then 3L else 1L)
+    let newWorryLevel = (monkey.Operation item) |> worryReducer
     let targetMonkey = getTargetMonkey monkey newWorryLevel
-    state.MonkeyStates.[targetMonkey].Items <- state.MonkeyStates.[targetMonkey].Items @ [newWorryLevel]
+    state.[targetMonkey].Items <- state.[targetMonkey].Items @ [newWorryLevel]
 
   monkeyState.InspectionCount <- monkeyState.InspectionCount + (int64 monkeyState.Items.Length)
   monkeyState.Items <- [];
 
   state
 
-let processRound (monkeys: Monkey[]) state round = 
-  monkeys |> Array.fold processMonkey state
+let processRound worryReducer (monkeys: Monkey[]) state round = 
+  monkeys |> Array.fold (processMonkey worryReducer) state
 
 let calculateMonkeyBusiness state =
-  state.MonkeyStates 
+  state 
   |> Array.map (fun x -> x.InspectionCount) 
   |> Array.sortDescending 
   |> Array.take 2 
-  |> Array.mul
+  |> Array.reduce (*)
 
-let run1 rounds reduceWorry (input:string)  =
-  let (monkeys: Monkey[]), monkeyStates = parseMonkeys input reduceWorry
-  let modulus = monkeys |> Array.map (fun m -> m.DivisibilityTest) |> Array.mul
-  let state = { MonkeyStates = monkeyStates; Modulus = modulus }
-
+let run rounds worryReducer monkeys state = 
   [1..rounds]
-  |> List.fold (processRound monkeys) state
-  |> calculateMonkeyBusiness
+  |> List.fold (processRound worryReducer monkeys) state
+  |> calculateMonkeyBusiness  
+
+let run1 rounds (input:string)  =
+  let (monkeys: Monkey[]), state = parseMonkeys input
+  let worryReducer = fun x -> x / 3L
+  run rounds worryReducer monkeys state
+
+let run2 rounds (input:string)  =
+  let (monkeys: Monkey[]), state = parseMonkeys input
+  let lcm = monkeys |> Array.map (fun m -> m.DivisibilityTest) |> Array.reduce (*)
+  let worryReducer = fun x -> x % lcm
+  run rounds worryReducer monkeys state
 
 printfn "example"
-test <@ example |> run1 20 true = 10605L @>
-test <@ example |> run1 10000 false = 2713310158L @>
+test <@ example |> run1 20 = 10605L @>
+test <@ example |> run2 10000 = 2713310158L @>
 // example1.Split("\n") |> run2
 
 printfn "puzzle"
-let puzzle = System.IO.File.ReadAllText("data/day11.txt");;
-test <@ puzzle |> run1 20 true = 54253 @>
-test <@ puzzle |> run1 10000 false = 13119526120L @>
+let puzzle = readText "day11";;
+test <@ puzzle |> run1 20 = 54253 @>
+test <@ puzzle |> run2 10000 = 13119526120L @>

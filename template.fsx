@@ -1,6 +1,7 @@
-#load "helpers.fsx"
-open Helpers
+#r "nuget: Unquote"
+#r "./Common/bin/Debug/net6.0/Common.dll"
 open Swensen.Unquote
+open Common
 
 let example = """example"""
 
