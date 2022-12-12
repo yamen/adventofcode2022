@@ -82,8 +82,27 @@ module Parse =
     let float32 s = s |> TryParse.float32 |> Solidify.X
     let float s = s |> TryParse.float |> Solidify.X
     let decimal s = s |> TryParse.decimal |> Solidify.X
-    let regex pattern s = s |> TryParse.regex pattern |> Solidify.X           
+    let regex pattern s = s |> TryParse.regex pattern |> Solidify.X    
 
+[<AutoOpen>]       
+[<RequireQualifiedAccess>]
+module Array =
+    let findIndex2D predicate (array: 'a array array) =
+        Seq.pick id <| seq {
+            for y = 0 to Array.length array - 1 do
+                for x = 0 to Array.length array[y] - 1 do
+                    if predicate array [y] [x] then yield Some (y, x)
+                    else yield None
+        }
+        
+    let neighboursXY x y (array: 'a array array) = seq {
+        let deltas = [(0, 1); (0, -1); (1, 0); (-1, 0)]
+        for (xd, yd) in deltas do
+            let x' = x + xd
+            let y' = y + yd
+            if y' >= 0 && y' < array.Length &&
+                x' >= 0 && x' < array[y'].Length then yield (x', y')
+    }
 [<AutoOpen>]
 [<RequireQualifiedAccess>]
 module Array2D =
