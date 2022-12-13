@@ -2,3 +2,4 @@
 .fake
 obj/
 bin/
+.vscode/

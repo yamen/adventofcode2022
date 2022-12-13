@@ -1,6 +1,5 @@
 #r "nuget: Unquote"
 #r "./Common/bin/Debug/net6.0/Common.dll"
-#r "nuget: FParsec"
 open Swensen.Unquote
 open Common
 open System.Text.RegularExpressions
