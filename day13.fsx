@@ -31,27 +31,25 @@ let example = """[1,1,3,1,1]
 
 type EntryList = 
     | Value of int
-    | EntryList of EntryList list
+    | List of EntryList list
     with 
         override this.ToString() = 
             match this with
             | Value x -> x.ToString()
-            | EntryList x -> "[" + System.String.Join(",",x |> Seq.map (fun x -> x.ToString())) + "]"
+            | List x -> "[" + System.String.Join(",",x |> Seq.map (fun x -> x.ToString())) + "]"
 
 let parseEntry (input:string) = 
-    let rec parse (input: string list) (EntryList acc: EntryList) cont = 
+    let rec parse (input: string list) (acc: EntryList list) = 
         match input with
-        | "["::rest -> 
-            parse rest (EntryList []) (fun input res -> parse input (EntryList (acc @ [ res ] )) cont)
-        | "]"::rest ->
-            cont rest (EntryList acc)
-        | x::rest ->
-            parse rest (EntryList (acc @ [Value (int32 x)])) cont
-        | [] -> EntryList acc
+        | "["::rest -> let list, rest = parse rest [] in parse rest (List list :: acc)
+        | "]"::rest -> List.rev acc, rest
+        | x::rest -> parse rest (Value (int32 x) :: acc)
+        | [] -> acc, []
 
-    let inputTokens = (Regex.Split(input.Substring(1,input.Length-2), @"([,\[\]])") |> List.ofArray |> List.filter (fun x -> x <> "," && x <> ""))
+    // splits on , [ ] but keeps numbers together (ie doesn't split 10 into 1 and 0)
+    let inputTokens = (Regex.Split(input, @"([,\[\]])") |> List.ofArray |> List.filter (fun x -> x <> "," && x <> ""))
 
-    parse inputTokens (EntryList []) (fun a b -> b)
+    parse inputTokens [] |> fst |> List.head
 
 let parseInput (input:string) = 
     // split string ignore empty lines
@@ -64,14 +62,14 @@ let compareValues l r = if l < r then Some(true) else if l > r then Some(false) 
 let rec compareEntryLists (l:EntryList, r:EntryList) = 
     match l, r with
     | Value x, Value y -> compareValues x y
-    | EntryList x, EntryList y -> 
+    | List x, List y -> 
         let valuesResult = Seq.zip x y |> Seq.tryPick (fun x -> compareEntryLists x)
 
         match valuesResult with
         | Some(x) -> Some(x)
         | None -> compareValues x.Length y.Length
-    | Value x, _ -> compareEntryLists ((EntryList [Value x]),r)
-    | _, Value y -> compareEntryLists (l,(EntryList [Value y]))
+    | Value x, _ -> compareEntryLists ((List [Value x]),r)
+    | _, Value y -> compareEntryLists (l,(List [Value y]))
 
 let comparePair (l:EntryList, r:EntryList) = 
     l, r, compareEntryLists (l,r)
