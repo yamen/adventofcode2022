@@ -162,7 +162,7 @@ module Seq =
 module String = 
     let isWhitespaceOrEmpty (str: string) = String.IsNullOrWhiteSpace(str)
     let isEmpty (str: string) = String.IsNullOrEmpty(str)
-    let split (str: string) (separator: string) = str.Split(separator)
+    let split (separator: string) (str: string) = str.Split(separator)
 
 [<RequireQualifiedAccess>]
 [<AutoOpen>]
