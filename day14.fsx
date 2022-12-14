@@ -40,19 +40,15 @@ type SandDropResult =
     | MoveTo of int * int
 
 let tryMove (x, y) (grid: char[,]) = 
-    let tryMove boundaryCheck (x',y') =
-        if boundaryCheck then Some(FallOffEdge) else
-        match grid[y', x'] with
-        | '.' -> Some(MoveTo(x', y'))
-        | _ -> None
+    let moveCheck (x', y') =
+        match Array2D.tryGet (y', x') grid with
+        | None -> Some(FallOffEdge)
+        | Some '.' -> Some(MoveTo(x', y'))
+        | _ -> None     
 
-    let tryMoveDown = tryMove (y >= Array2D.length1 grid) (x,y+1)
-    let tryMoveLeft = tryMove (x <= Array2D.base2 grid) (x-1,y+1)
-    let tryMoveRight = tryMove (x >= Array2D.base2 grid + Array2D.length2 grid) (x+1,y+1)
-
-    tryMoveDown 
-    |> Option.orElse tryMoveLeft 
-    |> Option.orElse tryMoveRight 
+    moveCheck (x, y+1)
+    |> Option.orElse (moveCheck (x-1, y+1))
+    |> Option.orElse (moveCheck (x+1, y+1))
     |> Option.defaultValue (StopAt(x,y))
 
 let dropSand (x: int, y: int) (grid: char[,]) =
