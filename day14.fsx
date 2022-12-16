@@ -54,12 +54,6 @@ let buildGrid (addFloorBelow: int) (paths: (int * int) list array) =
 
     { grid = grid; minX = minX'; maxX = maxX'; maxY = maxY }
 
-type SandMove = 
-    | Edge
-    | Rock of int * int
-    | Sand of int * int
-    | Open of int * int
-
 type SandDropResult = 
     | FallOffEdge
     | StopAt of int * int
