@@ -103,6 +103,7 @@ module Array =
             if y' >= 0 && y' < array.Length &&
                 x' >= 0 && x' < array[y'].Length then yield (x', y')
     }
+
 [<AutoOpen>]
 [<RequireQualifiedAccess>]
 module Array2D =
@@ -123,6 +124,12 @@ module Array2D =
             for y in b2 .. b2 + Array2D.length2 array - 1 do
                 state <- folder state (array.[x, y])
         state    
+
+    let tryGet (v1, v2) (array: 'a [,]) = 
+        if v1 >= array.GetLowerBound(0) && v1 <= array.GetUpperBound(0) && v2 >= array.GetLowerBound(1) && v2 <= array.GetUpperBound(1) then
+            Some(array[v1, v2])
+        else
+            None
 
 [<AutoOpen>]
 [<RequireQualifiedAccess>]

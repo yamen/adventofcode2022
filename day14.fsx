@@ -6,37 +6,17 @@ open Common
 let example = """498,4 -> 498,6 -> 496,6
 503,4 -> 502,4 -> 502,9 -> 494,9"""
 
-let parseCoordinate = function 
-    | Regex @"(\d+),(\d+)" [x; y] -> (int32 x, int32 y) | _ -> failwith "wtf"
-
-let parsePath (input: string) = 
-    input.Split(" -> ") |> Array.map parseCoordinate |> List.ofArray
-
-let parsePaths (input:string) = 
-    input.Split("\n") |> Array.map parsePath
-
-type Grid = 
-    { grid: char [,]; minX: int; maxX: int; maxY: int }
-    with 
-        override this.ToString() = 
-            let sb = new System.Text.StringBuilder()
-            for y in 0..this.maxY do
-                for x in this.minX..this.maxX do 
-                    sb.Append(this.grid.[y, x]) |> ignore
-                sb.AppendLine() |> ignore
-            sb.ToString()
-        
+let parseCoordinate = function | Regex @"(\d+),(\d+)" [x; y] -> (int32 x, int32 y) | _ -> failwith "wtf"
+let parsePath (input: string) = input.Split(" -> ") |> Array.map parseCoordinate |> List.ofArray
+let parsePaths (input:string) = input.Split("\n") |> Array.map parsePath    
 
 let buildGrid (addFloorBelow: int) (paths: (int * int) list array) = 
-    let maxY = (paths |> Array.map (fun x -> x |> List.map snd |> List.max) |> Array.max) + addFloorBelow
+    let maxY = (paths |> Array.map (List.map snd >> List.max) |> Array.max) + addFloorBelow
+    let expandX = if addFloorBelow > 0 then maxY else 0
+    let minX = (paths |> Array.map (List.map fst >> List.min) |> Array.min) - expandX
+    let maxX = (paths |> Array.map (List.map fst >> List.max) |> Array.max) + expandX
 
-    let minX = (paths |> Array.map (fun x -> x |> List.map fst |> List.min) |> Array.min) 
-    let maxX = (paths |> Array.map (fun x -> x |> List.map fst |> List.max) |> Array.max)
-
-    let minX' = if (addFloorBelow > 0) then minX - maxY else minX
-    let maxX' = if (addFloorBelow > 0) then maxX + maxY else maxX
-
-    let grid = Array2D.createBased<char> 0 minX' (maxY + 1) (maxX' - minX' + 1) '.'
+    let grid = Array2D.createBased<char> 0 minX (maxY + 1) (maxX - minX + 1) '.'
 
     for path in paths do
         for i in 0..path.Length-2 do
@@ -49,43 +29,39 @@ let buildGrid (addFloorBelow: int) (paths: (int * int) list array) =
                     grid[y, x] <- '#'
 
     if addFloorBelow > 0 then
-        for x in minX'..maxX' do
+        for x in minX..maxX do
             grid[maxY, x] <- '#'
 
-    { grid = grid; minX = minX'; maxX = maxX'; maxY = maxY }
+    grid
 
 type SandDropResult = 
     | FallOffEdge
     | StopAt of int * int
     | MoveTo of int * int
 
-let tryMove (x, y) (grid: Grid) = 
-    let tryMove boundaryCheck (x',y') =
-        if boundaryCheck then Some(FallOffEdge) else
-        match grid.grid.[y', x'] with
-        | '.' -> Some(MoveTo(x', y'))
-        | _ -> None
+let tryMove (x, y) (grid: char[,]) = 
+    let moveCheck (x', y') =
+        match Array2D.tryGet (y', x') grid with
+        | None -> Some(FallOffEdge)
+        | Some '.' -> Some(MoveTo(x', y'))
+        | _ -> None     
 
-    let tryMoveDown = tryMove (y >= grid.maxY) (x,y+1)
-    let tryMoveLeft = tryMove (x <= grid.minX) (x-1,y+1)
-    let tryMoveRight = tryMove (x >= grid.maxX) (x+1,y+1)
-
-    tryMoveDown 
-    |> Option.orElse tryMoveLeft 
-    |> Option.orElse tryMoveRight 
+    moveCheck (x, y+1)
+    |> Option.orElse (moveCheck (x-1, y+1))
+    |> Option.orElse (moveCheck (x+1, y+1))
     |> Option.defaultValue (StopAt(x,y))
 
-let dropSand (x: int, y: int) (grid: Grid) =
-    let rec loop (x: int, y: int) (grid: Grid) =
+let dropSand (x: int, y: int) (grid: char[,]) =
+    let rec loop (x, y) grid =
         match tryMove (x, y) grid with
         | MoveTo(x, y) -> loop (x, y) grid
-        | StopAt(x, y) -> grid.grid.[y, x] <- 'o'; grid, StopAt(x, y)
+        | StopAt(x, y) -> grid[y, x] <- 'o'; grid, StopAt(x, y)
         | FallOffEdge -> grid, FallOffEdge
 
     loop (x, y) grid
 
-let dropSandUntilStopped startPos (grid: Grid) =
-    let rec loop (x: int, y: int) sandCount (grid: Grid) =
+let dropSandUntilStopped startPos (grid: char[,]) =
+    let rec loop (x,y) sandCount grid =
         let grid', result = dropSand (x, y) grid
 
         match result with
