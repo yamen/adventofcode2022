@@ -171,6 +171,8 @@ module Seq =
 
     let countWhere predicate = Seq.filter predicate >> Seq.length      
 
+    let repeatInfinitely items = seq { while true do yield! items }
+
 [<AutoOpen>]
 [<RequireQualifiedAccess>]
 module String = 
