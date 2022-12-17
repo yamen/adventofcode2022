@@ -1,0 +1,32 @@
+digraph {
+        AA [label="AA (0)" color=red];
+BB [label="BB (13)"];
+CC [label="CC (2)"];
+DD [label="DD (20)"];
+EE [label="EE (3)"];
+FF [label="FF (0)" color=red];
+GG [label="GG (0)" color=red];
+HH [label="HH (22)"];
+II [label="II (0)" color=red];
+JJ [label="JJ (21)"] 
+        AA -> BB [label="1"];
+AA -> DD [label="1"];
+AA -> II [label="1"];
+BB -> AA [label="1"];
+BB -> CC [label="1"];
+CC -> BB [label="1"];
+CC -> DD [label="1"];
+DD -> AA [label="1"];
+DD -> CC [label="1"];
+DD -> EE [label="1"];
+EE -> DD [label="1"];
+EE -> FF [label="1"];
+FF -> EE [label="1"];
+FF -> GG [label="1"];
+GG -> FF [label="1"];
+GG -> HH [label="1"];
+HH -> GG [label="1"];
+II -> AA [label="1"];
+II -> JJ [label="1"];
+JJ -> II [label="1"]
+        }

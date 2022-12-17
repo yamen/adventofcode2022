@@ -1,0 +1,48 @@
+digraph {
+    AA [label="AA (0)" color=red];
+BB [label="BB (13)"];
+CC [label="CC (2)"];
+DD [label="DD (20)"];
+EE [label="EE (3)"];
+FF [label="FF (0)" color=red];
+GG [label="GG (0)" color=red];
+HH [label="HH (22)"];
+II [label="II (0)" color=red];
+JJ [label="JJ (21)"] 
+    AA -> BB [label="1"];
+AA -> CC [label="2"];
+AA -> DD [label="1"];
+AA -> EE [label="2"];
+AA -> HH [label="5"];
+AA -> JJ [label="2"];
+BB -> CC [label="1"];
+BB -> DD [label="2"];
+BB -> EE [label="3"];
+BB -> HH [label="6"];
+BB -> JJ [label="3"];
+CC -> BB [label="1"];
+CC -> DD [label="1"];
+CC -> EE [label="2"];
+CC -> HH [label="5"];
+CC -> JJ [label="4"];
+DD -> BB [label="2"];
+DD -> CC [label="1"];
+DD -> EE [label="1"];
+DD -> HH [label="4"];
+DD -> JJ [label="3"];
+EE -> BB [label="3"];
+EE -> CC [label="2"];
+EE -> DD [label="1"];
+EE -> HH [label="3"];
+EE -> JJ [label="4"];
+HH -> BB [label="6"];
+HH -> CC [label="5"];
+HH -> DD [label="4"];
+HH -> EE [label="3"];
+HH -> JJ [label="7"];
+JJ -> BB [label="3"];
+JJ -> CC [label="4"];
+JJ -> DD [label="3"];
+JJ -> EE [label="4"];
+JJ -> HH [label="7"]
+}

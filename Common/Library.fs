@@ -7,6 +7,8 @@ open System
 module Misc = 
     let readLines day = System.IO.File.ReadAllLines($"data/{day}.txt")
     let readText day = System.IO.File.ReadAllText($"data/{day}.txt")
+    let inline uncurry2 f a b = f (a, b)
+    let min2 (a, b) = uncurry2 min 
 
 [<RequireQualifiedAccess>]
 [<AutoOpen>]
@@ -136,6 +138,11 @@ module Array2D =
 module Set = 
     let inline sum (source: Set< ^T >) = Set.fold (+) LanguagePrimitives.GenericZero< ^T > source
     let inline length (set: Set<'T>) = set.Count
+
+[<AutoOpen>]
+[<RequireQualifiedAccess>]
+module Map = 
+    let merge m1 m2 = Map.fold (fun acc key value -> Map.add key value acc) m1 m2
 
 [<AutoOpen>]
 [<RequireQualifiedAccess>]
