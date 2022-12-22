@@ -145,8 +145,6 @@ let run2 (input:string) =
         | Right :: rest, Op (left, right, _) -> evaluate monkeys left, right, rest
         | _ -> failwith "invalid path"
 
-    printfn "%A" (target, from, path)
-
     calculate monkeys target from path
 
 printfn "example"
@@ -156,4 +154,4 @@ test <@ example |> run2 = 301L @>
 printfn "puzzle"
 let puzzle = readText "day21";;
 test <@ puzzle |> run1 = 364367103397416L @>
-puzzle |> run2 |> printfn "%A"
+test <@ puzzle |> run2 = 3782852515583L @>
