@@ -116,7 +116,7 @@ let run1 (input:string) =
     
     let (x, y), bearing = 
         instructions
-        |> explore (8, 0) Bearing.E map
+        |> explore (0, 0) Bearing.E map
 
     1000 * (y+1) + 4 * (x+1) + (int32 bearing)
 
